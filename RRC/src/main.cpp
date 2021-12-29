@@ -1,12 +1,9 @@
 #include <math.h>
 #include <mbed.h>
 
-#include "function.h"
-#define QUEUE_SIZE 1024
-
-UnbufferedSerial IR(PC_6, PC_7, 8192);   // USART6
-UnbufferedSerial GR(PA_9, PA_10, 8192);  // USART1
-UnbufferedSerial LS(PC_12, PD_2, 8192);  // USART5
+Serial IR(PC_6, PC_7, 8192);   // USART6
+Serial GR(PA_9, PA_10, 8192);  // USART1
+Serial LS(PC_12, PD_2, 8192);  // USART5
 
 DigitalOut myled(PA_5);
 Ticker warikomi;
@@ -17,13 +14,6 @@ PwmOut pwmB_1(PB_6);
 PwmOut pwmB_2(PB_7);
 PwmOut pwmC_1(PB_8);
 PwmOut pwmC_2(PB_9);
-
-int IR_head;
-int IR_num;
-int GR_head;
-int GR_num;
-int LS_head;
-int LS_num;
 
 int IR_count;
 u_int8_t IR_tmp[8];
@@ -36,10 +26,6 @@ float IR_deg, IR_dist;
 float LS_F, LS_B, LS_R, LS_L;
 float GR_deg;
 
-u_int8_t IR_data[QUEUE_SIZE];
-u_int8_t GR_data[QUEUE_SIZE];
-u_int8_t LS_data[QUEUE_SIZE];
-
 // float error[2];
 // float integral;
 // float p, i, d;
@@ -48,10 +34,16 @@ u_int8_t LS_data[QUEUE_SIZE];
 // #define KD 0
 // #define DELTA 1.0e-2
 
+void IR_read();
+void GR_read();
+void LS_read();
+void movement();
+void wrap_ball();
+
 void main() {
     IR.baud(115200);
     IR.format(8, SerialBase::None, 1);
-    IR.attach(IR_rx, SerialBase::RxIrq);
+    IR.attach(IR_read, SerialBase::RxIrq);
     GR.baud(115200);
     GR.format(8, SerialBase::None, 1);
     GR.attach(GR_rx, SerialBase::RxIrq);
@@ -61,122 +53,58 @@ void main() {
     warikomi.attach(&movement, 10ms);
 
     while (1) {
-        if (IR.readable) {
-            IR_read();
-        }
-        if (GR.readable) {
-            GR_read();
-        }
-        if (LS.readable) {
-            LS_read();
-        }
     }
-}
-
-void IR_rx() {
-    u_int8_t val;
-    IR.read(&val, 1);
-    IR_enq(val);
 }
 
 void IR_read() {
-    u_int8_t val;
-    IR_deq(&val);
-
-    else if (val == 0x53) {
+    u_int8_t receive = IR.getc();
+    if (receive == 0x53) {
         IR_count = 0;
-    }
-    else {
+    } else {
         IR_count++;
     }
-    IR_tmp[IR_count] = val;
+    IR_tmp[IR_count] = receive;
     if (IR_count == 7) {
         IR_deg = 100.0f * IR_tmp[1] + 10.0f * IR_tmp[2] + IR_tmp[3];
         IR_dist = 100.0f * IR_tmp[4] + 10.0f * IR_tmp[5] + IR_tmp[6];
     }
 }
 
-void GR_rx() {
-    u_int8_t val;
-    GR.read(&val, 1);
-    GR_enq(val);
-}
-
 void GR_read() {
-    u_int8_t val;
-    GR_deq(&val);
-    if (val == 0x53) {
+    u_int8_t reveive = GR.getc();
+    if (receive == 0x53) {
         GR_count = 0;
     } else {
         GR_count++;
     }
-    GR_tmp[GR_count] = val;
+    GR_tmp[GR_count] = receive;
     if (GR_count == 7) {
-        GR_deg = (int)GR_tmp[2];
+        GR_deg = (float)GR_tmp[2];
     }
 }
 
-void LS_rx() {
-    u_int8_t val;
-    LS.read(&val, 1);
-    LS_enq(val);
-}
-
 void LS_read() {
-    u_int8_t val;
-    LS_deq(&val) else if (val == 0x53) { LS_count = 0; }
-    else {
+    u_int8_t receive = LS.getc();
+    if (receive == 0x53) {
+        LS_count = 0;
+    } else {
         LS_count++;
     }
     LS_tmp[LS_count] = val;
     if (LS_count == 7) {
-        LS_F = LS_tmp[2];
-        LS_B = LS_tmp[3];
-        LS_R = LS_tmp[4];
-        LS_L = LS_tmp[5];
+        LS_F = (float)LS_tmp[2];
+        LS_B = (float)LS_tmp[3];
+        LS_R = (float)LS_tmp[4];
+        LS_L = (float)LS_tmp[5];
     }
-}
-
-void IR_enq(u_int8_t enq_data) {
-    IR_data[(IR_head + IR_num) % QUEUE_SIZE] = enq_data;
-    IR_num++;
-}
-
-void IR_deq(u_int8_t *deq_data) {
-    *deq_data = IR_data[IR_head];
-    IR_head = (IR_head + 1) % QUEUE_SIZE;
-    IR_num--;
-    return 1;
-}
-
-void GR_enq(u_int8_t enq_data) {
-    GR_data[(GR_head + GR_num) % QUEUE_SIZE] = enq_data;
-    GR_num++;
-}
-
-void GR_deq(u_int8_t *deq_data) {
-    *deq_data = GR_data[GR_head];
-    GR_head = (GR_head + 1) % QUEUE_SIZE;
-    GR_num--;
-}
-
-void LS_enq(u_int8_t enq_data) {
-    LS_data[(LS_head + LS_num) % QUEUE_SIZE] = enq_data;
-    LS_num++;
-}
-
-void LS_deq(u_int8_t *deq_data) {
-    *deq_data = LS_data[LS_head];
-    LS_head = (LS_head + 1) % QUEUE_SIZE;
-    LS_num--;
 }
 
 void movement() {
     float wheelA, wheelB, wheelC, degVec, pwmA, pwmB, pwmC;
     degVec = (((GR_deg - 60.0f) / 60.0f) * 0.2f);
-    wheelA = (IR_dist * sin(IR_deg - 60.0f)) * 0.8f;
-    wheelB = (IR_dist * sin(IR_deg - 300.0f)) * 0.8f;
-    wheelC = (IR_dist * sin(IR_deg - 180.0f)) * 0.8f;
+    wheelA = (IR_dist * sin(IR_deg - 60.0f)) * 0.8f;   //右モーター
+    wheelB = (IR_dist * sin(IR_deg - 300.0f)) * 0.8f;  //後モーター
+    wheelC = (IR_dist * sin(IR_deg - 180.0f)) * 0.8f;  //左モーター
 
     pwmA = wheelA + degVec;
     pwmB = wheelB + degVec;
