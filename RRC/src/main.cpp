@@ -4,19 +4,19 @@
 #include "function.h"
 #define QUEUE_SIZE 1024
 
-UnbufferedSerial IR(PA_2, PA_3, 8192);   // UART2
-UnbufferedSerial GR(PA_9, PA_10, 8192);  // UART1
-UnbufferedSerial LS(PA_0, PA_1, 8192);   // UART4
+UnbufferedSerial IR(PC_6, PC_7, 8192);   // USART6
+UnbufferedSerial GR(PA_9, PA_10, 8192);  // USART1
+UnbufferedSerial LS(PC_12, PD_2, 8192);  // USART5
 
 DigitalOut myled(PA_5);
 Ticker warikomi;
 
-PwmOut pwmA_1(PA_6);
-PwmOut pwmA_2(PA_7);
-PwmOut pwmB_1(PA_8);
-PwmOut pwmB_2(PB_4);
-PwmOut pwmC_1(PB_5);
-PwmOut pwmC_2(PB_3);
+PwmOut pwmA_1(PB_4);
+PwmOut pwmA_2(PB_5);
+PwmOut pwmB_1(PB_6);
+PwmOut pwmB_2(PB_7);
+PwmOut pwmC_1(PB_8);
+PwmOut pwmC_2(PB_9);
 
 int IR_head;
 int IR_num;
