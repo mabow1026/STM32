@@ -1,6 +1,9 @@
 #include <math.h>
 #include <mbed.h>
 
+#define IR_offset 0
+#define IR_cut
+
 Serial IR(PC_6, PC_7, 8192);   // USART6
 Serial GR(PA_9, PA_10, 8192);  // USART1
 Serial LS(PC_12, PD_2, 8192);  // USART5
@@ -22,7 +25,7 @@ u_int8_t LS_tmp[8];
 int GR_count;
 u_int8_t GR_tmp[8];
 
-float IR_deg, IR_dist;
+float IR_D, IR_F;
 float LS_F, LS_B, LS_R, LS_L;
 float GR_deg;
 
@@ -38,7 +41,6 @@ void IR_read();
 void GR_read();
 void LS_read();
 void movement();
-void wrap_ball();
 
 void main() {
     IR.baud(115200);
@@ -65,8 +67,14 @@ void IR_read() {
     }
     IR_tmp[IR_count] = receive;
     if (IR_count == 7) {
-        IR_deg = 100.0f * IR_tmp[1] + 10.0f * IR_tmp[2] + IR_tmp[3];
-        IR_dist = 100.0f * IR_tmp[4] + 10.0f * IR_tmp[5] + IR_tmp[6];
+        IR_D = 100.0f * IR_tmp[1] + 10.0f * IR_tmp[2] + IR_tmp[3];
+        IR_F = 100.0f * IR_tmp[4] + 10.0f * IR_tmp[5] + IR_tmp[6];
+        IR_D = IR_D + IR_offset;
+        if (IR_D < 0) {
+            IR_D = IR_D + 360;
+        } else if (IR_D > 360) {
+            IR_D = IR_D - 360;
+        }
     }
 }
 
@@ -99,43 +107,45 @@ void LS_read() {
     }
 }
 
-void movement() {
-    float wheelA, wheelB, wheelC, degVec, pwmA, pwmB, pwmC;
-    degVec = (((GR_deg - 60.0f) / 60.0f) * 0.2f);
-    wheelA = (IR_dist * sin(IR_deg - 60.0f)) * 0.8f;   //右モーター
-    wheelB = (IR_dist * sin(IR_deg - 300.0f)) * 0.8f;  //後モーター
-    wheelC = (IR_dist * sin(IR_deg - 180.0f)) * 0.8f;  //左モーター
+void movement(u_int_8_t Force, u_int_8_t Degree) {
+    float wheelA, wheelB, wheelC, deg, pwmA, pwmB, pwmC;
+    deg = (GR_deg - 60.0f) + IR_deg;
+    if (IR_D >= 60.0f) {
+        deg + 90.0f;
+    } else if (IR_D <= 300.0f) {
+        deg + -90.0f;
+    }
+    wheelA = (IR_F * sin((deg - 60.0f) * M_PI / 180.0f));   //右モーター
+    wheelB = (IR_F * sin((deg - 300.0f) * M_PI / 180.0f));  //左モーター
+    wheelC = (IR_F * sin((deg - 180.0f) * M_PI / 180.0f));  //後モーター
 
-    pwmA = wheelA + degVec;
-    pwmB = wheelB + degVec;
-    pwmC = wheelC + degVec;
+    pwmA = fabsf(wheelA);
+    pwmB = fabsf(wheelB);
+    pwmC = fabsf(wheelC);
 
     if (pwmA > 0) {
-        pwmA_1 = fabsf(pwmA);
+        pwmA_1 = pwmA;
         pwmA_2 = 0;
     } else if (pwmA < 0) {
         pwmA_1 = 0;
-        pwmA_2 = fabsf(pwmA);
+        pwmA_2 = pwmA;
     }
 
     if (pwmB > 0) {
-        pwmB_1 = fabsf(pwmB);
+        pwmB_1 = pwmB;
         pwmB_2 = 0;
     } else if (pwmB < 0) {
         pwmB_1 = 0;
-        pwmB_2 = fabsf(pwmB);
+        pwmB_2 = pwmB;
     }
 
     if (pwmC > 0) {
-        pwmC_1 = fabsf(pwmC);
+        pwmC_1 = pwmC;
         pwmC_2 = 0;
     } else if (pwmC < 0) {
         pwmC_1 = 0;
-        pwmC_2 = fabsf(pwmC);
+        pwmC_2 = pwmC;
     }
-}
-
-void wrap_ball() {
 }
 
 // float pid_culc(float feedback, float target)
