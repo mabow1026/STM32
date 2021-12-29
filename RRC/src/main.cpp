@@ -26,19 +26,19 @@ int LS_head;
 int LS_num;
 
 int IR_count;
-data_t IR_tmp[8];
+u_int8_t IR_tmp[8];
 int LS_count;
-data_t LS_tmp[8];
+u_int8_t LS_tmp[8];
 int GR_count;
-data_t GR_tmp[8];
+u_int8_t GR_tmp[8];
 
 float IR_deg, IR_dist;
 float LS_F, LS_B, LS_R, LS_L;
 float GR_deg;
 
-data_t IR_data[QUEUE_SIZE];
-data_t GR_data[QUEUE_SIZE];
-data_t LS_data[QUEUE_SIZE];
+u_int8_t IR_data[QUEUE_SIZE];
+u_int8_t GR_data[QUEUE_SIZE];
+u_int8_t LS_data[QUEUE_SIZE];
 
 // float error[2];
 // float integral;
@@ -74,13 +74,13 @@ void main() {
 }
 
 void IR_rx() {
-    data_t val;
+    u_int8_t val;
     IR.read(&val, 1);
     IR_enq(val);
 }
 
 void IR_read() {
-    data_t val;
+    u_int8_t val;
     IR_deq(&val);
 
     else if (val == 0x53) {
@@ -97,13 +97,13 @@ void IR_read() {
 }
 
 void GR_rx() {
-    data_t val;
+    u_int8_t val;
     GR.read(&val, 1);
     GR_enq(val);
 }
 
 void GR_read() {
-    data_t val;
+    u_int8_t val;
     GR_deq(&val);
     if (val == 0x53) {
         GR_count = 0;
@@ -117,13 +117,13 @@ void GR_read() {
 }
 
 void LS_rx() {
-    data_t val;
+    u_int8_t val;
     LS.read(&val, 1);
     LS_enq(val);
 }
 
 void LS_read() {
-    data_t val;
+    u_int8_t val;
     LS_deq(&val) else if (val == 0x53) { LS_count = 0; }
     else {
         LS_count++;
@@ -137,77 +137,77 @@ void LS_read() {
     }
 }
 
-void IR_enq(data_t enq_data) {
+void IR_enq(u_int8_t enq_data) {
     IR_data[(IR_head + IR_num) % QUEUE_SIZE] = enq_data;
     IR_num++;
 }
 
-void IR_deq(data_t *deq_data) {
+void IR_deq(u_int8_t *deq_data) {
     *deq_data = IR_data[IR_head];
     IR_head = (IR_head + 1) % QUEUE_SIZE;
     IR_num--;
     return 1;
 }
 
-void GR_enq(data_t enq_data) {
+void GR_enq(u_int8_t enq_data) {
     GR_data[(GR_head + GR_num) % QUEUE_SIZE] = enq_data;
     GR_num++;
 }
 
-void GR_deq(data_t *deq_data) {
+void GR_deq(u_int8_t *deq_data) {
     *deq_data = GR_data[GR_head];
     GR_head = (GR_head + 1) % QUEUE_SIZE;
     GR_num--;
 }
 
-void LS_enq(data_t enq_data) {
+void LS_enq(u_int8_t enq_data) {
     LS_data[(LS_head + LS_num) % QUEUE_SIZE] = enq_data;
     LS_num++;
 }
 
-void LS_deq(data_t *deq_data) {
+void LS_deq(u_int8_t *deq_data) {
     *deq_data = LS_data[LS_head];
     LS_head = (LS_head + 1) % QUEUE_SIZE;
     LS_num--;
 }
 
 void movement() {
-    float wheelA, wheelB, wheelC, degv, swheelA, swheelB, swheelC;
-    degv = (((GR_deg - 60.0f) / 60.0f) * 0.2f);
+    float wheelA, wheelB, wheelC, degVec, pwmA, pwmB, pwmC;
+    degVec = (((GR_deg - 60.0f) / 60.0f) * 0.2f);
     wheelA = (IR_dist * sin(IR_deg - 60.0f)) * 0.8f;
     wheelB = (IR_dist * sin(IR_deg - 300.0f)) * 0.8f;
     wheelC = (IR_dist * sin(IR_deg - 180.0f)) * 0.8f;
 
-    swheelA = wheelA + degv;
-    swheelB = wheelB + degv;
-    swheelC = wheelC + degv;
+    pwmA = wheelA + degVec;
+    pwmB = wheelB + degVec;
+    pwmC = wheelC + degVec;
 
-    if (swheelA > 0)  //後ろオムニホイール
-    {
-        pwmA_1 = fabsf(swheelA);
+    if (pwmA > 0) {
+        pwmA_1 = fabsf(pwmA);
         pwmA_2 = 0;
-    } else if (swheelA < 0) {
+    } else if (pwmA < 0) {
         pwmA_1 = 0;
-        pwmA_2 = fabsf(swheelA);
+        pwmA_2 = fabsf(pwmA);
     }
 
-    if (swheelB > 0)  //右前オムニホイール
-    {
-        pwmB_1 = fabsf(swheelB);
+    if (pwmB > 0) {
+        pwmB_1 = fabsf(pwmB);
         pwmB_2 = 0;
-    } else if (swheelB < 0) {
+    } else if (pwmB < 0) {
         pwmB_1 = 0;
-        pwmB_2 = fabsf(swheelB);
+        pwmB_2 = fabsf(pwmB);
     }
 
-    if (swheelC > 0)  //左前オムニホイール
-    {
-        pwmC_1 = fabsf(swheelC);
+    if (pwmC > 0) {
+        pwmC_1 = fabsf(pwmC);
         pwmC_2 = 0;
-    } else if (swheelC < 0) {
+    } else if (pwmC < 0) {
         pwmC_1 = 0;
-        pwmC_2 = fabsf(swheelC);
+        pwmC_2 = fabsf(pwmC);
     }
+}
+
+void wrap_ball() {
 }
 
 // float pid_culc(float feedback, float target)
