@@ -108,6 +108,9 @@ void LS_read() {
 }
 
 void movement(u_int_8_t Force, u_int_8_t Degree) {
+    while (LS_F == TRUE || LS_B == TRUE || LS_R == TRUE || LS_L == TRUE) {
+        step_line();
+    }
     float wheelA, wheelB, wheelC, deg, pwmA, pwmB, pwmC;
     deg = (GR_deg - 60.0f) + IR_deg;
     if (IR_D >= 60.0f) {
@@ -146,6 +149,39 @@ void movement(u_int_8_t Force, u_int_8_t Degree) {
         pwmC_1 = 0;
         pwmC_2 = pwmC;
     }
+}
+
+void step_line {
+    if (LS_F == TRUE) {
+        pwmA_1 = 0;
+        pwmA_2 = 0;
+        pwmB_1 = 0;
+        pwmB_2 = 0;
+        pwmC_1 = 0;
+        pwmC_2 = 0;
+    } else if (LS_B == TRUE) {
+        pwmA_1 = 0;
+        pwmA_2 = 0;
+        pwmB_1 = 0;
+        pwmB_2 = 0;
+        pwmC_1 = 0;
+        pwmC_2 = 0;
+    } else if (LS_R == TRUE) {
+        pwmA_1 = 0;
+        pwmA_2 = 0;
+        pwmB_1 = 0;
+        pwmB_2 = 0;
+        pwmC_1 = 0;
+        pwmC_2 = 0;
+    } else if (LS_L == TRUE) {
+        pwmA_1 = 0;
+        pwmA_2 = 0;
+        pwmB_1 = 0;
+        pwmB_2 = 0;
+        pwmC_1 = 0;
+        pwmC_2 = 0;
+    }
+    thread_sleep_for(100);
 }
 
 // float pid_culc(float feedback, float target)
