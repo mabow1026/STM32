@@ -107,7 +107,7 @@ void LS_read() {
     }
 }
 
-void movement(u_int_8_t Force, u_int_8_t Degree) {
+void movement() {
     while (LS_F == TRUE || LS_B == TRUE || LS_R == TRUE || LS_L == TRUE) {
         step_line();
     }
