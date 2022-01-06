@@ -1,12 +1,14 @@
-#include <stdio.h>
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-double calcLen(double *dp, int num){
-    double sum=0.0;
-    int i;
+#include "vector.h"
 
-    for(i = 0; i < num; i++)
-        sum += dp[i] * dp[i];
-
-    return sqrt(sum);
+double calcLen(double *dp, int num) {
+    double *out, sum = 0.0;
+    out = (double *)malloc(num * sizeof(double));
+    calc_squareVec(dp, out, num);
+    sum = sqrt(sumVec(out, num));
+    free(out);
+    return sum;
 }
