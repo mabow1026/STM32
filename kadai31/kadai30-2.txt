@@ -1,0 +1,6 @@
+~#@❯ ./a.exe                                                                                                                                                                                                  ❮  2s 125ms      
+Input Point (x,y,z)
+Input data[0] : 0
+Input data[1] : 0
+Input data[2] : 0
+Electric Field Vector:  0.000000, 0.000000, 0.000000, 

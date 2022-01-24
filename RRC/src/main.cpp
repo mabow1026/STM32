@@ -4,9 +4,9 @@
 #define IR_offset 0
 #define IR_cut
 
-Serial IR(PC_6, PC_7, 8192);   // USART6
-Serial GR(PA_9, PA_10, 8192);  // USART1
-Serial LS(PC_12, PD_2, 8192);  // USART5
+static BufferedSerial IR(PC_6, PC_7, 8192);   // USART6
+static BufferedSerial GR(PA_9, PA_10, 8192);  // USART1
+static BufferedSerial LS(PC_12, PD_2, 8192);  // USART5
 
 DigitalOut myled(PA_5);
 Ticker warikomi;
@@ -42,7 +42,7 @@ void GR_read();
 void LS_read();
 void movement();
 
-void main() {
+int main() {
     IR.baud(115200);
     IR.format(8, SerialBase::None, 1);
     IR.attach(IR_read, SerialBase::RxIrq);
@@ -56,6 +56,7 @@ void main() {
 
     while (1) {
     }
+    return 0;
 }
 
 void IR_read() {
@@ -154,32 +155,32 @@ void movement() {
 void step_line {
     if (LS_F == TRUE) {
         pwmA_1 = 0;
-        pwmA_2 = 0;
-        pwmB_1 = 0;
+        pwmA_2 = 1;
+        pwmB_1 = 1;
         pwmB_2 = 0;
         pwmC_1 = 0;
         pwmC_2 = 0;
     } else if (LS_B == TRUE) {
-        pwmA_1 = 0;
+        pwmA_1 = 1;
         pwmA_2 = 0;
         pwmB_1 = 0;
-        pwmB_2 = 0;
+        pwmB_2 = 1;
         pwmC_1 = 0;
         pwmC_2 = 0;
     } else if (LS_R == TRUE) {
         pwmA_1 = 0;
         pwmA_2 = 0;
-        pwmB_1 = 0;
+        pwmB_1 = 0.67;
         pwmB_2 = 0;
-        pwmC_1 = 0;
+        pwmC_1 = 0.33;
         pwmC_2 = 0;
     } else if (LS_L == TRUE) {
         pwmA_1 = 0;
         pwmA_2 = 0;
         pwmB_1 = 0;
-        pwmB_2 = 0;
+        pwmB_2 = 0.67;
         pwmC_1 = 0;
-        pwmC_2 = 0;
+        pwmC_2 = 0.33;
     }
     thread_sleep_for(100);
 }
