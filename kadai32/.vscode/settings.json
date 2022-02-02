@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "cstdio": "c"
+        "cstdio": "c",
+        "stdio.h": "c",
+        "vector.h": "c"
     }
 }
